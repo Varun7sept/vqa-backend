@@ -6,7 +6,7 @@ from flask_cors import CORS
 from transformers import ViltProcessor, ViltForQuestionAnswering
 from pymongo import MongoClient
 from PIL import Image
-import io, base64, torch
+import io, base64, torch, os
 
 # -------------------------
 # 1. Setup Flask
@@ -15,11 +15,17 @@ app = Flask(__name__)
 CORS(app)
 
 # -------------------------
-# 2. Setup MongoDB
+# 2. Setup MongoDB (Atlas + Local Fallback)
 # -------------------------
-client = MongoClient("mongodb://localhost:27017/")  # change if using MongoDB Atlas
-db = client["vqa_db"]
-collection = db["history"]
+# Try to read from environment variable (for Render)
+mongo_uri = os.environ.get(
+    "MONGO_URI", 
+    "mongodb://localhost:27017/"   # fallback for local dev
+)
+
+client = MongoClient(mongo_uri)
+db = client["vqa_db"]              # database name
+collection = db["history"]         # collection name
 
 # -------------------------
 # 3. Load Model
